@@ -33,7 +33,7 @@ public class ServletTeacher extends HttpServlet {
 
         switch (type_request){
             case "all":
-
+                teacherList = dao.getTeachers(false);
                 break;
 
             case "topfive":
