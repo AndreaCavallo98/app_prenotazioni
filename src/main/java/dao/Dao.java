@@ -199,12 +199,20 @@ public class Dao {
 
         return reviews_average;
     }
-    public ArrayList<Teacher> getTeachers(boolean topFive) {
+    public ArrayList<Teacher> getTeachers(boolean topFive, int courseId) {
         ArrayList<Teacher> teachers_list = new ArrayList<>();
         createConnection();
         try {
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM teacher WHERE active = 1");
+            String query = "SELECT * FROM teacher";
+            if(courseId != -1){
+                query += " LEFT JOIN rel_course_teacher ON rel_course_teacher.id_teacher = teacher.id";
+            }
+            query += " WHERE teacher.active = 1";
+            if(courseId != -1){
+                query += " AND rel_course_teacher.id_course = " + courseId;
+            }
+            ResultSet rs = st.executeQuery(query);
             while (rs.next()) {
 
                 int num_lectures_given = getNumTeacherLecturesGiven(rs.getInt("id"));
@@ -212,7 +220,7 @@ public class Dao {
                 double reviews_average = getTeacherReviewsAverage(rs.getInt("id"), num_teacher_review);
                 ArrayList<Course> teacherCourseList = getTeacherCourses(rs.getInt("id"));
 
-                Teacher teacher = new Teacher(rs.getInt("id"),rs.getString("name"),rs.getString("surname"),teacherCourseList, rs.getDouble("hourly_rate"),num_lectures_given,num_teacher_review,reviews_average, rs.getString("image_name"), rs.getBoolean("active"));
+                Teacher teacher = new Teacher(rs.getInt("id"),rs.getString("name"),rs.getString("surname"),rs.getString("description"), teacherCourseList, rs.getDouble("hourly_rate"),num_lectures_given,num_teacher_review,reviews_average, rs.getString("image_name"), rs.getBoolean("active"));
                 teachers_list.add(teacher);
 
             }
@@ -224,8 +232,13 @@ public class Dao {
         }*/
 
         Collections.sort(teachers_list, new CustomTeacherComparator());
-        ArrayList<Teacher> topFiveList = new ArrayList<Teacher>(teachers_list.subList(teachers_list.size() -5, teachers_list.size()));
-        Collections.sort(topFiveList, Collections.reverseOrder(new CustomTeacherComparator()));
+
+        ArrayList<Teacher> topFiveList = null;
+        if(topFive){
+            topFiveList = new ArrayList<Teacher>(teachers_list.subList(teachers_list.size() -5, teachers_list.size()));
+            Collections.sort(topFiveList, Collections.reverseOrder(new CustomTeacherComparator()));
+        }
+
         return topFive && teachers_list.size() >= 5 ?  topFiveList : teachers_list;
     }
 
@@ -372,7 +385,7 @@ public class Dao {
 
         List<DailyAvaliability> listAvaliability = new ArrayList<>();
         List<Course> courseList = getCourses();
-        List<Teacher> teacherList = getTeachers(false);
+        List<Teacher> teacherList = getTeachers(false, -1);
         createConnection();
         for(Teacher t: teacherList){
             try {

@@ -29,25 +29,31 @@ public class ServletTeacher extends HttpServlet {
         Gson gson = new Gson();
 
         String type_request = request.getParameter("type");
-        ArrayList<Teacher> teacherList = null;
+        String filterCourseIdString = request.getParameter("courseid");
 
-        switch (type_request){
-            case "all":
-                teacherList = dao.getTeachers(false);
-                break;
+        if(type_request != null && filterCourseIdString != null) {
 
-            case "topfive":
-                teacherList = dao.getTeachers(true);
 
-                break;
+            int filterCourseId = Integer.parseInt(filterCourseIdString);
+            ArrayList<Teacher> teacherList = null;
 
-            case "bycourse":
+            switch (type_request) {
+                case "all":
+                    teacherList = dao.getTeachers(false, filterCourseId);
+                    break;
 
-                break;
+                case "topfive":
+                    teacherList = dao.getTeachers(true, filterCourseId);
+
+                    break;
+            }
+
+            String jsonString = gson.toJson(teacherList);
+            out.print(jsonString);
+
+        } else {
+            response.sendError(500, "parameters not completed");
         }
-
-        String jsonString = gson.toJson(teacherList);
-        out.print(jsonString);
     }
 
     @Override

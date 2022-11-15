@@ -8,6 +8,8 @@ public class Teacher {
     private String name;
     private String surname;
 
+    private String description;
+
     private ArrayList<Course> teached_courses;
 
     private double hourly_rate;
@@ -29,10 +31,11 @@ public class Teacher {
     }
 
     // Constructor for get
-    public Teacher(int id, String name, String surname, ArrayList<Course> teached_courses, double hourly_rate, int num_lectures_given, int num_reviews, double reviews_average, String image_name, Boolean active){
+    public Teacher(int id, String name, String surname,String description, ArrayList<Course> teached_courses, double hourly_rate, int num_lectures_given, int num_reviews, double reviews_average, String image_name, Boolean active){
         this.id = id;
         this.name = name;
         this.surname = surname;
+        this.description = description;
         this.teached_courses = teached_courses;
         this.hourly_rate = hourly_rate;
         this.num_lectures_given = num_lectures_given;
