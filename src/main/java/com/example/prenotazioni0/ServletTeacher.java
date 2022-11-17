@@ -30,20 +30,22 @@ public class ServletTeacher extends HttpServlet {
 
         String type_request = request.getParameter("type");
         String filterCourseIdString = request.getParameter("courseid");
+        String filterAvaliableDate = request.getParameter("avaliabledate");
+        String filterMaxHourlyRateString = request.getParameter("maxhourlyrate");
 
-        if(type_request != null && filterCourseIdString != null) {
-
+        if(type_request != null && filterCourseIdString != null && filterAvaliableDate != null && filterMaxHourlyRateString != null) {
 
             int filterCourseId = Integer.parseInt(filterCourseIdString);
+            int filterMaxHourlyRate = Integer.parseInt(filterMaxHourlyRateString);
             ArrayList<Teacher> teacherList = null;
 
             switch (type_request) {
                 case "all":
-                    teacherList = dao.getTeachers(false, filterCourseId);
+                    teacherList = dao.getTeachers(false, filterCourseId, filterAvaliableDate, filterMaxHourlyRate);
                     break;
 
                 case "topfive":
-                    teacherList = dao.getTeachers(true, filterCourseId);
+                    teacherList = dao.getTeachers(true, filterCourseId, "", -1);
 
                     break;
             }

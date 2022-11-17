@@ -8,12 +8,15 @@ public class User {
     private String username;
     private String password;
     private String role;
+
+    private String image_name;
     private Boolean active;
 
-    public User(int id, String username, String role, Boolean active){
+    public User(int id, String username, String role, String image_name, Boolean active){
         this.id = id;
         this.username = username;
         this.role = role;
+        this.image_name = image_name;
         this.active = active;
     }
 

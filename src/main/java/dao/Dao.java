@@ -54,7 +54,7 @@ public class Dao {
             ResultSet rs = st.executeQuery("SELECT * FROM user WHERE username = '" + username + "' AND password = '" + password + "' AND active = 1");
             if (rs.next()) {
 
-                user = new User(rs.getInt("id"), rs.getString("username"), rs.getString("role"), true);
+                user = new User(rs.getInt("id"), rs.getString("username"), rs.getString("role"), rs.getString("image_name"), true);
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -199,18 +199,21 @@ public class Dao {
 
         return reviews_average;
     }
-    public ArrayList<Teacher> getTeachers(boolean topFive, int courseId) {
+    public ArrayList<Teacher> getTeachers(boolean topFive, int filterCourseId, String filterAvaliableDate, int filterMaxHourlyRate) {
         ArrayList<Teacher> teachers_list = new ArrayList<>();
         createConnection();
         try {
             Statement st = conn.createStatement();
             String query = "SELECT * FROM teacher";
-            if(courseId != -1){
+            if(filterCourseId != -1){
                 query += " LEFT JOIN rel_course_teacher ON rel_course_teacher.id_teacher = teacher.id";
             }
             query += " WHERE teacher.active = 1";
-            if(courseId != -1){
-                query += " AND rel_course_teacher.id_course = " + courseId;
+            if(filterCourseId != -1){
+                query += " AND rel_course_teacher.id_course = " + filterCourseId;
+            }
+            if(filterMaxHourlyRate != -1){
+                query += " AND teacher.hourly_rate <= " + filterMaxHourlyRate;
             }
             ResultSet rs = st.executeQuery(query);
             while (rs.next()) {
@@ -221,8 +224,14 @@ public class Dao {
                 ArrayList<Course> teacherCourseList = getTeacherCourses(rs.getInt("id"));
 
                 Teacher teacher = new Teacher(rs.getInt("id"),rs.getString("name"),rs.getString("surname"),rs.getString("description"), teacherCourseList, rs.getDouble("hourly_rate"),num_lectures_given,num_teacher_review,reviews_average, rs.getString("image_name"), rs.getBoolean("active"));
-                teachers_list.add(teacher);
-
+                if(filterAvaliableDate != ""){
+                    if(checkTeacherAvaliabilityDate(teacher.getId(), filterAvaliableDate)){
+                        teachers_list.add(teacher);
+                    }
+                }
+                else{
+                    teachers_list.add(teacher);
+                }
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -257,7 +266,64 @@ public class Dao {
         return course_list;
     }
 
-    public class CustomTeacherComparator implements Comparator<Teacher> {
+    public ArrayList<Review> getTeacherReviews(int idTeacher){
+        ArrayList<Review> review_list = new ArrayList<>();
+        createConnection();
+        try {
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT " +
+                                                "booking_review.id, " +
+                                                "user.name, " +
+                                                "user.surname," +
+                                                "user.image_name," +
+                                                "booking_review.rate, " +
+                                                "booking_review.title, " +
+                                                "booking_review.text, " +
+                                                "booking_review.creation_date " +
+                                                "FROM booking_review " +
+                                                "LEFT JOIN booking ON booking.id = booking_review.id_booking  " +
+                                                "LEFT JOIN teacher ON teacher.id = booking.id_teacher " +
+                                                "LEFT JOIN user ON user.id = booking.id_user " +
+                                                "WHERE booking.id_teacher = " + idTeacher);
+            while (rs.next()) {
+                Review review = new Review(
+                    rs.getInt("id"),
+                    rs.getString("user.name"),
+                    rs.getString("user.surname"),
+                    rs.getString("user.image_name"),
+                    rs.getInt("booking_review.rate"),
+                    rs.getString("booking_review.title"),
+                    rs.getString("booking_review.text"),
+                    rs.getString("booking_review.creation_date")
+                );
+                review_list.add(review);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        /*finally {
+            closeConnection();
+        }*/
+        return review_list;
+    }
+
+    private Boolean checkTeacherAvaliabilityDate(int idTeacher, String date){
+        Boolean ret = false;
+        try {
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT COUNT(*) as num_theacher_commitments FROM booking WHERE id_teacher = " + idTeacher + " AND booking_date = '" + date + "'");
+            rs.next();
+            int num_teacher_commitments = rs.getInt("num_theacher_commitments");
+            ret = num_teacher_commitments < 4;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        finally {
+            return ret;
+        }
+    }
+
+    private class CustomTeacherComparator implements Comparator<Teacher> {
         @Override
         public int compare(Teacher o1, Teacher o2) {
             return Double.compare(o1.getReviews_average(), o2.getReviews_average());
@@ -314,9 +380,17 @@ public class Dao {
     }
 
     // => METHODS TO MANAGE BOOKING
+    // to do: quando clicca button conferma prenotazione controllare ancora l'effettiva disponibilita
+    // to do: cerca per nome/corso
+    // to do: max hour rate slider
+    // to do: null sound...
+    // to do: vedi filtri selezionati quando riapro il filtro
+    // to do: btm rimuovi filtri
+    // to do: errore se cerco per no selection
+
     public Boolean addBooking(int idCourse, int idTeacher, int idUser, String date, int startTime, int endTime){
         createConnection();
-        if(checkTeacherAvaliability(idTeacher, date, startTime)){
+        if(checkTeacherAvaliabilityDateTime(idTeacher, date, startTime)){
             try {
                 Statement st = conn.createStatement();
                 st.executeUpdate("INSERT INTO booking (id_course, id_teacher, id_user, booking_date, booking_time_start, booking_time_end) VALUES (" + idCourse +  ", " + idTeacher + ", " + idUser + ", '" + date + "', " + startTime + ", " + endTime + ")");
@@ -335,7 +409,7 @@ public class Dao {
         }
 
     }
-    public Boolean checkTeacherAvaliability(int idTeacher, String date, int startTime){
+    public Boolean checkTeacherAvaliabilityDateTime(int idTeacher, String date, int startTime){
         Boolean ret = false;
         try {
             Statement st = conn.createStatement();
@@ -385,7 +459,7 @@ public class Dao {
 
         List<DailyAvaliability> listAvaliability = new ArrayList<>();
         List<Course> courseList = getCourses();
-        List<Teacher> teacherList = getTeachers(false, -1);
+        List<Teacher> teacherList = getTeachers(false, -1, "", -1);
         createConnection();
         for(Teacher t: teacherList){
             try {
