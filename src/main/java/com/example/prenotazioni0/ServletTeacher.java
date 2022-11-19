@@ -24,38 +24,53 @@ public class ServletTeacher extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setContentType("application/json");
+        //response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         Gson gson = new Gson();
 
         String type_request = request.getParameter("type");
-        String filterCourseIdString = request.getParameter("courseid");
-        String filterAvaliableDate = request.getParameter("avaliabledate");
-        String filterMaxHourlyRateString = request.getParameter("maxhourlyrate");
+        System.out.println(type_request);
+        if(!type_request.equals("maxhourlyrate")){
+            String filterCourseIdString = request.getParameter("courseid");
+            String filterAvaliableDate = request.getParameter("avaliabledate");
+            String filterMaxHourlyRateString = request.getParameter("maxhourlyrate");
 
-        if(type_request != null && filterCourseIdString != null && filterAvaliableDate != null && filterMaxHourlyRateString != null) {
+            if(type_request != null && filterCourseIdString != null && filterAvaliableDate != null && filterMaxHourlyRateString != null) {
 
-            int filterCourseId = Integer.parseInt(filterCourseIdString);
-            int filterMaxHourlyRate = Integer.parseInt(filterMaxHourlyRateString);
-            ArrayList<Teacher> teacherList = null;
+                int filterCourseId = Integer.parseInt(filterCourseIdString);
+                int filterMaxHourlyRate = Integer.parseInt(filterMaxHourlyRateString);
+                ArrayList<Teacher> teacherList = null;
 
-            switch (type_request) {
-                case "all":
-                    teacherList = dao.getTeachers(false, filterCourseId, filterAvaliableDate, filterMaxHourlyRate);
-                    break;
+                switch (type_request) {
+                    case "all":
+                        response.setContentType("application/json");
+                        teacherList = dao.getTeachers(false, filterCourseId, filterAvaliableDate, filterMaxHourlyRate);
+                        String jsonString = gson.toJson(teacherList);
+                        out.print(jsonString);
+                        break;
 
-                case "topfive":
-                    teacherList = dao.getTeachers(true, filterCourseId, "", -1);
+                    case "topfive":
+                        response.setContentType("application/json");
+                        teacherList = dao.getTeachers(true, filterCourseId, "", 0);
+                        String jsonString1 = gson.toJson(teacherList);
+                        out.print(jsonString1);
+                        break;
+                }
 
-                    break;
+
+
+            } else {
+                response.sendError(500, "parameters not completed");
             }
-
-            String jsonString = gson.toJson(teacherList);
-            out.print(jsonString);
-
-        } else {
-            response.sendError(500, "parameters not completed");
         }
+        else{
+            System.out.println("AAAAAAAAA");
+            response.setContentType("html/text");
+            int maxHourlyRate = dao.getMaxHourlyRate();
+            out.print(maxHourlyRate);
+        }
+
+
     }
 
     @Override

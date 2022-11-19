@@ -212,7 +212,7 @@ public class Dao {
             if(filterCourseId != -1){
                 query += " AND rel_course_teacher.id_course = " + filterCourseId;
             }
-            if(filterMaxHourlyRate != -1){
+            if(filterMaxHourlyRate != 0){
                 query += " AND teacher.hourly_rate <= " + filterMaxHourlyRate;
             }
             ResultSet rs = st.executeQuery(query);
@@ -323,6 +323,21 @@ public class Dao {
         }
     }
 
+    public int getMaxHourlyRate(){
+        int maxHourlyRate = 1;
+        createConnection();
+        try{
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT CEILING(COALESCE(MAX(hourly_rate),1)) as max_hourly_rate FROM teacher");
+            rs.next();
+            maxHourlyRate = rs.getInt("max_hourly_rate");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return maxHourlyRate;
+    }
+
     private class CustomTeacherComparator implements Comparator<Teacher> {
         @Override
         public int compare(Teacher o1, Teacher o2) {
@@ -380,13 +395,10 @@ public class Dao {
     }
 
     // => METHODS TO MANAGE BOOKING
-    // to do: quando clicca button conferma prenotazione controllare ancora l'effettiva disponibilita
+    // to do: quando clicca button conferma prenotazione controllare ancora l'effettiva disponibilita (servlet threaded safe)
     // to do: cerca per nome/corso
-    // to do: max hour rate slider
     // to do: null sound...
-    // to do: vedi filtri selezionati quando riapro il filtro
     // to do: btm rimuovi filtri
-    // to do: errore se cerco per no selection
 
     public Boolean addBooking(int idCourse, int idTeacher, int idUser, String date, int startTime, int endTime){
         createConnection();
