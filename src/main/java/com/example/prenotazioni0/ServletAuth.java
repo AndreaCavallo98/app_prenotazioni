@@ -1,6 +1,7 @@
 package com.example.prenotazioni0;
 
 import com.google.gson.Gson;
+import dao.AuthResponse;
 import dao.Dao;
 import dao.Teacher;
 import dao.User;
@@ -31,12 +32,15 @@ public class ServletAuth extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("application/json");
+        PrintWriter out = response.getWriter();
+        Gson gson = new Gson();
 
-        response.setContentType("application/html");
         String username = request.getParameter("username");
         String password = request.getParameter("password");
-        System.out.println(username);
+        AuthResponse authResponse;
         if(username != null && password != null){
+
             User user = dao.login(username, password);
             if(user != null){
 
@@ -45,15 +49,18 @@ public class ServletAuth extends HttpServlet {
                 s.setAttribute("userId", user.getId());
                 s.setAttribute("userRole", user.getRole());
 
-                //response.setContentType("text/html");
-                PrintWriter out = response.getWriter();
-                out.print("<span class='badge bg-success'>You are correctly authenticated like " + user.getUsername() + ", role: " + user.getRole() + "</span>");
+                authResponse = new AuthResponse(user.getId(),user.getUsername(),s.getId(),user.getImage_name(),"");
             }
             else{
-                //response.setContentType("text/html");
-                PrintWriter out = response.getWriter();
-                out.print("<span class='badge bg-danger'>Error while authenticating... User or Password are incorrect</span>");
+
+                authResponse = new AuthResponse(-1,"","","","Credentials not correct!");
             }
         }
+        else{
+            authResponse = new AuthResponse(-1,"","","","Generic Error");
+        }
+
+        String jsonString = gson.toJson(authResponse);
+        out.print(jsonString);
     }
 }
