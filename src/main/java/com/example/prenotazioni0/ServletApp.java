@@ -1,12 +1,9 @@
 package com.example.prenotazioni0;
 
 import dao.Dao;
-
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.*;
-import java.util.Timer;
-import java.util.TimerTask;
 
 @WebServlet(name = "ServletApp", value = "/ServletApp", loadOnStartup = 1, asyncSupported = true)
 public class ServletApp extends HttpServlet {

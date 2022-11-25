@@ -5,6 +5,7 @@ import dao.AuthResponse;
 import dao.Dao;
 import dao.Teacher;
 import dao.User;
+import jwt.JWTHelper;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -44,12 +45,13 @@ public class ServletAuth extends HttpServlet {
             User user = dao.login(username, password);
             if(user != null){
 
-                HttpSession s = request.getSession();
-                s.setAttribute("userUsername", user.getUsername());
-                s.setAttribute("userId", user.getId());
-                s.setAttribute("userRole", user.getRole());
+                //HttpSession s = request.getSession();
+                //s.setAttribute("userUsername", user.getUsername());
+                //s.setAttribute("userId", user.getId());
+                //s.setAttribute("userRole", user.getRole());
 
-                authResponse = new AuthResponse(user.getId(),user.getUsername(),s.getId(),user.getImage_name(),"");
+                String jwtToken = JWTHelper.createJwt(Integer.toString(user.getId()), user.getUsername(), user.getRole());
+                authResponse = new AuthResponse(user.getId(),user.getUsername(),jwtToken,user.getImage_name(),"");
             }
             else{
 

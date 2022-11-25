@@ -1,5 +1,6 @@
 package dao;
 
+import java.awt.print.Book;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -321,6 +322,31 @@ public class Dao {
         finally {
             return ret;
         }
+    }
+
+    public ArrayList<BookingSlot> getDailyTeacherSlots(int idTeacher, String dateDay){
+        ArrayList<BookingSlot> booking_slot_list = new ArrayList<>();
+        try {
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT * FROM booking WHERE id_teacher = " + idTeacher + " AND booking_date = '" + dateDay + "' ORDER BY booking_time_start ASC");
+
+            for(int i = 15; i < 19; i++) {
+                BookingSlot bookingSlot = new BookingSlot(i, i+1, true);
+                booking_slot_list.add(bookingSlot);
+            }
+
+            while (rs.next()) {
+                for (BookingSlot slot:booking_slot_list) {
+                    if(slot.getFrom() == rs.getInt("booking_time_start")){
+                        slot.setAvaliable(false);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return booking_slot_list;
+
     }
 
     public int getMaxHourlyRate(){
