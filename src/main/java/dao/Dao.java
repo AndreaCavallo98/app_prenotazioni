@@ -475,7 +475,7 @@ public class Dao {
             closeConnection();
         }*/
     }
-    public ArrayList<Booking> getBooking() {
+    /*public ArrayList<Booking> getBooking() {
         ArrayList<Booking> bookings_list = new ArrayList<>();
         createConnection();
         try {
@@ -490,9 +490,64 @@ public class Dao {
         }
         /*finally {
             closeConnection();
-        }*/
+        }
         return bookings_list;
+    }*/
+
+    public ArrayList<Booking> getUsersBooking(int userId) {
+        ArrayList<Booking> my_bookings_list = new ArrayList<>();
+        createConnection();
+        try {
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery(
+                    "SELECT booking.id, " +
+                        "course.title, " +
+                        "course.color, " +
+                        "teacher.name, " +
+                        "teacher.surname, " +
+                        "booking.id_user, " +
+                        "booking.booking_date, " +
+                        "booking.booking_time_start," +
+                        "booking.booking_time_end, " +
+                        "booking.confirmed, " +
+                        "booking.deleted, " +
+                        "booking_review.id " +
+                        "FROM booking " +
+                        "LEFT JOIN teacher ON teacher.id = booking.id_teacher " +
+                        "LEFT JOIN course ON course.id = booking.id_course " +
+                        "LEFT JOIN booking_review ON booking_review.id_booking = booking.id " +
+                        "WHERE booking.id_user = " + userId);
+
+            while (rs.next()) {
+                boolean hasReview = false;
+                if(rs.getString("booking_review.id") != null){
+                    hasReview = true;
+                }
+                Booking myBook = new Booking(
+                        rs.getInt("booking.id"),
+                        rs.getString("course.title"),
+                        rs.getString("course.color"),
+                        (rs.getString("teacher.name") + " " + rs.getString("teacher.surname")),
+                        rs.getInt("booking.id_user"),
+                        rs.getString("booking.booking_date"),
+                        rs.getInt("booking.booking_time_start"),
+                        rs.getInt("booking.booking_time_end"),
+                        rs.getBoolean("booking.confirmed"),
+                        rs.getBoolean("booking.deleted"),
+                        hasReview
+                );
+
+                my_bookings_list.add(myBook);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        /*finally {
+            closeConnection();
+        }*/
+        return my_bookings_list;
     }
+
     public List<DailyAvaliability> getSlotAvaliability(String day, int time){
 
         List<DailyAvaliability> listAvaliability = new ArrayList<>();

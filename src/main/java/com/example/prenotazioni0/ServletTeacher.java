@@ -29,7 +29,6 @@ public class ServletTeacher extends HttpServlet {
         Gson gson = new Gson();
 
         String type_request = request.getParameter("type");
-        System.out.println(type_request);
         if(!type_request.equals("maxhourlyrate")){
             String filterCourseIdString = request.getParameter("courseid");
             String filterAvaliableDate = request.getParameter("avaliabledate");
@@ -57,7 +56,7 @@ public class ServletTeacher extends HttpServlet {
                         break;
                 }
 
-
+                // the socety
 
             } else {
                 response.sendError(500, "parameters not completed");
