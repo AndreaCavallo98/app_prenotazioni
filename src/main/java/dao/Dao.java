@@ -477,6 +477,20 @@ public class Dao {
         }*/
     }
 
+    public void markBookingAsDone(int idBooking){
+        createConnection();
+        try {
+            Statement st = conn.createStatement();
+            st.executeUpdate("UPDATE booking SET confirmed = 1 WHERE id = " + idBooking);
+            st.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        /*finally {
+            closeConnection();
+        }*/
+    }
+
     /*public ArrayList<Booking> getBooking() {
         ArrayList<Booking> bookings_list = new ArrayList<>();
         createConnection();
