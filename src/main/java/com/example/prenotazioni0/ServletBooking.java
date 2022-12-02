@@ -87,12 +87,30 @@ public class ServletBooking extends HttpServlet {
         else{
             response.sendError(500, "parameters not completed");
         }
+    }
 
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("application/json");
+        PrintWriter out = response.getWriter();
+        Gson gson = new Gson();
 
+        String bookingId = request.getParameter("bookingid");
+        if(bookingId != null){
+            String jwt = request.getHeader("Authorization");
 
+            try{
+                JWTHelper.decodeJwt(jwt);
+                // => from here user is authenticated
+                dao.removeBooking(Integer.parseInt(bookingId));
 
-
-
-
+                //out.print();
+            } catch (Exception e){
+                response.sendError(401, "Unauthorized");
+            }
+        }
+        else{
+            response.sendError(500, "parameters not completed");
+        }
     }
 }

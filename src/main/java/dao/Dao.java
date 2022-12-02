@@ -462,11 +462,12 @@ public class Dao {
             return ret;
         }
     }
+
     public void removeBooking(int idBooking){
         createConnection();
         try {
             Statement st = conn.createStatement();
-            st.executeUpdate("DELETE FROM booking WHERE id = " + idBooking);
+            st.executeUpdate("UPDATE booking SET deleted = 1 WHERE id = " + idBooking);
             st.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -475,6 +476,7 @@ public class Dao {
             closeConnection();
         }*/
     }
+
     /*public ArrayList<Booking> getBooking() {
         ArrayList<Booking> bookings_list = new ArrayList<>();
         createConnection();
@@ -506,7 +508,8 @@ public class Dao {
                         "teacher.name, " +
                         "teacher.surname, " +
                         "booking.id_user, " +
-                        "booking.booking_date, " +
+                        "booking.booking_date," +
+                        "STR_TO_DATE(booking.booking_date, '%d/%m/%Y') as booking_date_converted," +
                         "booking.booking_time_start," +
                         "booking.booking_time_end, " +
                         "booking.confirmed, " +
@@ -516,7 +519,8 @@ public class Dao {
                         "LEFT JOIN teacher ON teacher.id = booking.id_teacher " +
                         "LEFT JOIN course ON course.id = booking.id_course " +
                         "LEFT JOIN booking_review ON booking_review.id_booking = booking.id " +
-                        "WHERE booking.id_user = " + userId);
+                        "WHERE booking.id_user = " + userId + " " +
+                        "ORDER BY booking_date_converted DESC");
 
             while (rs.next()) {
                 boolean hasReview = false;
