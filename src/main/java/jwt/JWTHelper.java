@@ -29,7 +29,7 @@ public class JWTHelper {
                 .setSubject(claimUsername)
                 .setId(UUID.randomUUID().toString())
                 .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plus(5l, ChronoUnit.MINUTES)))
+                .setExpiration(Date.from(now.plus(60l, ChronoUnit.MINUTES)))
                 .signWith(hmacKey)
                 .compact();
 

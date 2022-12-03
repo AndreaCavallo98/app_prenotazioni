@@ -267,6 +267,22 @@ public class Dao {
         return course_list;
     }
 
+    public Boolean addReview(int idBooking, int rate, String title, String text){
+        createConnection();
+
+            try {
+                Statement st = conn.createStatement();
+                st.executeUpdate("INSERT INTO booking_review (id_booking, rate, title, text) VALUES (" + idBooking +  ", " + rate + ", '" + title + "', '" + text + "')");
+                st.close();
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+            finally {
+                closeConnection();
+                return true;
+            }
+    }
+
     public ArrayList<Review> getTeacherReviews(int idTeacher){
         ArrayList<Review> review_list = new ArrayList<>();
         createConnection();
@@ -422,7 +438,6 @@ public class Dao {
 
     // => METHODS TO MANAGE BOOKING
     // to do: quando clicca button conferma prenotazione controllare ancora l'effettiva disponibilita (servlet threaded safe)
-    // to do: cerca per nome/corso
     // to do: null sound...
     // to do: btm rimuovi filtri
 
