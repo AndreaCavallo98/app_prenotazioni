@@ -2,6 +2,8 @@ package dao;
 
 import java.awt.print.Book;
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -270,17 +272,19 @@ public class Dao {
     public Boolean addReview(int idBooking, int rate, String title, String text){
         createConnection();
 
-            try {
-                Statement st = conn.createStatement();
-                st.executeUpdate("INSERT INTO booking_review (id_booking, rate, title, text) VALUES (" + idBooking +  ", " + rate + ", '" + title + "', '" + text + "')");
-                st.close();
-            } catch (SQLException e) {
-                System.out.println(e.getMessage());
-            }
-            finally {
-                closeConnection();
-                return true;
-            }
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        LocalDateTime now = LocalDateTime.now();
+        try {
+            Statement st = conn.createStatement();
+            st.executeUpdate("INSERT INTO booking_review (id_booking, rate, title, text, creation_date) VALUES (" + idBooking +  ", " + rate + ", '" + title + "', '" + text + "', '" + dtf.format(now) + "')");
+            st.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        finally {
+            closeConnection();
+            return true;
+        }
     }
 
     public ArrayList<Review> getTeacherReviews(int idTeacher){
