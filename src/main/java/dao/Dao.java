@@ -441,9 +441,18 @@ public class Dao {
     }
 
     // => METHODS TO MANAGE BOOKING
-    // to do: quando clicca button conferma prenotazione controllare ancora l'effettiva disponibilita (servlet threaded safe)
-    // to do: null sound...
-    // to do: btm rimuovi filtri
+
+    /* TO DO:
+    * managing errors requests & logout
+    * my notifications +
+    * dark theme +
+    * internalization +
+    * upcoming lecture home page
+    * fix login/logout & registration
+    * btn remove filter
+    * when user click on confirm booking check effective availability +
+    * null sound...
+    * */
 
     public Boolean addBooking(int idCourse, int idTeacher, int idUser, String date, int startTime, int endTime){
         createConnection();
