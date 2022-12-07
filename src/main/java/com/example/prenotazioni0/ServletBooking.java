@@ -33,14 +33,24 @@ public class ServletBooking extends HttpServlet {
         PrintWriter out = response.getWriter();
         Gson gson = new Gson();
         String userId = request.getParameter("userid");
+        String dailyUpcoming = request.getParameter("dailyupcoming");
 
-        if(userId != null){
+        if(userId != null && dailyUpcoming != null){
             String jwt = request.getHeader("Authorization");
 
             try{
                 JWTHelper.decodeJwt(jwt);
+                ArrayList<Booking> myBookingList;
                 // => from here user is authenticated
-                ArrayList<Booking> myBookingList = dao.getUsersBooking(Integer.parseInt(userId));
+                if(dailyUpcoming.equals("false")){
+                    // => normal
+                    myBookingList = dao.getUsersBooking(Integer.parseInt(userId));
+                }
+                else{
+                    // => Return only today booking
+                    myBookingList = dao.getUsersUpcomingDailyBooking(Integer.parseInt(userId));
+                }
+
                 String jsonString = gson.toJson(myBookingList);
                 out.print(jsonString);
             } catch (Exception e){
@@ -54,7 +64,7 @@ public class ServletBooking extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setContentType("application/json");
+        response.setContentType("html/text");
         PrintWriter out = response.getWriter();
         Gson gson = new Gson();
 
@@ -70,7 +80,7 @@ public class ServletBooking extends HttpServlet {
             try{
                 JWTHelper.decodeJwt(jwt);
                 // => from here user is authenticated
-                boolean bookingCommited = dao.addBooking(
+                int newBookingId = (int)dao.addBooking(
                     Integer.parseInt(courseId),
                     Integer.parseInt(teacherId),
                     Integer.parseInt(userId),
@@ -79,7 +89,7 @@ public class ServletBooking extends HttpServlet {
                     Integer.parseInt(endTime)
                 );
 
-                //out.print();
+                out.print(newBookingId);
             } catch (Exception e){
                 response.sendError(401, "Unauthorized");
             }

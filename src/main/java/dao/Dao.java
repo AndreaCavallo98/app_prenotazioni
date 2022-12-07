@@ -57,7 +57,7 @@ public class Dao {
             ResultSet rs = st.executeQuery("SELECT * FROM user WHERE username = '" + username + "' AND password = '" + password + "' AND active = 1");
             if (rs.next()) {
 
-                user = new User(rs.getInt("id"), rs.getString("username"), rs.getString("role"), rs.getString("image_name"), true);
+                user = new User(rs.getInt("id"), rs.getString("name"), rs.getString("surname"), rs.getString("username"), rs.getString("email"), rs.getString("role"), rs.getString("image_name"), true);
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -332,7 +332,7 @@ public class Dao {
         Boolean ret = false;
         try {
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT COUNT(*) as num_theacher_commitments FROM booking WHERE id_teacher = " + idTeacher + " AND booking_date = '" + date + "'");
+            ResultSet rs = st.executeQuery("SELECT COUNT(*) as num_theacher_commitments FROM booking WHERE deleted = false AND id_teacher = " + idTeacher + " AND booking_date = '" + date + "'");
             rs.next();
             int num_teacher_commitments = rs.getInt("num_theacher_commitments");
             ret = num_teacher_commitments < 4;
@@ -348,7 +348,7 @@ public class Dao {
         ArrayList<BookingSlot> booking_slot_list = new ArrayList<>();
         try {
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM booking WHERE id_teacher = " + idTeacher + " AND booking_date = '" + dateDay + "' ORDER BY booking_time_start ASC");
+            ResultSet rs = st.executeQuery("SELECT * FROM booking WHERE deleted = false AND id_teacher = " + idTeacher + " AND booking_date = '" + dateDay + "' ORDER BY booking_time_start ASC");
 
             for(int i = 15; i < 19; i++) {
                 BookingSlot bookingSlot = new BookingSlot(i, i+1, true);
@@ -443,35 +443,50 @@ public class Dao {
     // => METHODS TO MANAGE BOOKING
 
     /* TO DO:
-    * managing errors requests & logout
-    * my notifications +
-    * dark theme +
+    * managing errors requests
     * internalization +
-    * upcoming lecture home page
+    * errore ogni tanto quando elimino o aggiungo prenotazione non mi carica subito la lista con la modifica effettuata
     * fix login/logout & registration
     * btn remove filter
     * when user click on confirm booking check effective availability +
     * null sound...
     * */
 
-    public Boolean addBooking(int idCourse, int idTeacher, int idUser, String date, int startTime, int endTime){
+    public long addBooking(int idCourse, int idTeacher, int idUser, String date, int startTime, int endTime){
+        long retBookingNewId = -1;
         createConnection();
         if(checkTeacherAvaliabilityDateTime(idTeacher, date, startTime)){
             try {
-                Statement st = conn.createStatement();
-                st.executeUpdate("INSERT INTO booking (id_course, id_teacher, id_user, booking_date, booking_time_start, booking_time_end) VALUES (" + idCourse +  ", " + idTeacher + ", " + idUser + ", '" + date + "', " + startTime + ", " + endTime + ")");
+                PreparedStatement st = conn.prepareStatement("INSERT INTO booking (id_course, id_teacher, id_user, booking_date, booking_time_start, booking_time_end) VALUES (" + idCourse +  ", " + idTeacher + ", " + idUser + ", '" + date + "', " + startTime + ", " + endTime + ")",
+                        Statement.RETURN_GENERATED_KEYS);
+
+                int affectedRows = st.executeUpdate();
+
+                if (affectedRows == 0) {
+                    throw new SQLException("Creating user failed, no rows affected.");
+                }
+
+                try (ResultSet generatedKeys = st.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        retBookingNewId = generatedKeys.getLong(1);
+                    }
+                    else {
+                        throw new SQLException("Creating user failed, no ID obtained.");
+                    }
+                }
+
                 st.close();
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
             }
             finally {
                 closeConnection();
-                return true;
+                return retBookingNewId;
             }
 
         }
         else{
-            return false;
+            return retBookingNewId;
         }
 
     }
@@ -479,7 +494,7 @@ public class Dao {
         Boolean ret = false;
         try {
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM booking WHERE id_teacher = " + idTeacher + " AND booking_date = '" + date + "' AND booking_time_start = " + startTime);
+            ResultSet rs = st.executeQuery("SELECT * FROM booking WHERE deleted = false AND id_teacher = " + idTeacher + " AND booking_date = '" + date + "' AND booking_time_start = " + startTime);
             if (!rs.isBeforeFirst() ) {
                 ret = true;
             }
@@ -581,6 +596,61 @@ public class Dao {
                         rs.getBoolean("booking.confirmed"),
                         rs.getBoolean("booking.deleted"),
                         hasReview
+                );
+
+                my_bookings_list.add(myBook);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        /*finally {
+            closeConnection();
+        }*/
+        return my_bookings_list;
+    }
+
+    public ArrayList<Booking> getUsersUpcomingDailyBooking(int userId) {
+        ArrayList<Booking> my_bookings_list = new ArrayList<>();
+        createConnection();
+        try {
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery(
+                    "SELECT booking.id, " +
+                            "course.title, " +
+                            "course.color, " +
+                            "teacher.name, " +
+                            "teacher.surname, " +
+                            "booking.id_user, " +
+                            "booking.booking_date," +
+                            "STR_TO_DATE(booking.booking_date, '%d/%m/%Y') as booking_date_converted," +
+                            "booking.booking_time_start," +
+                            "booking.booking_time_end, " +
+                            "booking.confirmed, " +
+                            "booking.deleted, " +
+                            "booking_review.id " +
+                            "FROM booking " +
+                            "LEFT JOIN teacher ON teacher.id = booking.id_teacher " +
+                            "LEFT JOIN course ON course.id = booking.id_course " +
+                            "LEFT JOIN booking_review ON booking_review.id_booking = booking.id " +
+                            "WHERE booking.id_user = " + userId + " " +
+                            "AND STR_TO_DATE(booking.booking_date, '%d/%m/%Y') = CURDATE() " +
+                            "AND booking.confirmed = false " +
+                            "AND booking.deleted = false " +
+                            "ORDER BY booking_date_converted DESC");
+
+            while (rs.next()) {
+                Booking myBook = new Booking(
+                        rs.getInt("booking.id"),
+                        rs.getString("course.title"),
+                        rs.getString("course.color"),
+                        (rs.getString("teacher.name") + " " + rs.getString("teacher.surname")),
+                        rs.getInt("booking.id_user"),
+                        rs.getString("booking.booking_date"),
+                        rs.getInt("booking.booking_time_start"),
+                        rs.getInt("booking.booking_time_end"),
+                        rs.getBoolean("booking.confirmed"),
+                        rs.getBoolean("booking.deleted"),
+                        false
                 );
 
                 my_bookings_list.add(myBook);

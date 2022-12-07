@@ -56,14 +56,11 @@ public class ServletTeacher extends HttpServlet {
                         break;
                 }
 
-                // the socety
-
             } else {
                 response.sendError(500, "parameters not completed");
             }
         }
         else{
-            System.out.println("AAAAAAAAA");
             response.setContentType("html/text");
             int maxHourlyRate = dao.getMaxHourlyRate();
             out.print(maxHourlyRate);

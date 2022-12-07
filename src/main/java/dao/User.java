@@ -6,15 +6,20 @@ public class User {
     private String name;
     private String surname;
     private String username;
+
+    private String email;
     private String password;
     private String role;
 
     private String image_name;
     private Boolean active;
 
-    public User(int id, String username, String role, String image_name, Boolean active){
+    public User(int id, String name, String surname, String username, String email, String role, String image_name, Boolean active){
         this.id = id;
+        this.name = name;
+        this.surname = surname;
         this.username = username;
+        this.email = email;
         this.role = role;
         this.image_name = image_name;
         this.active = active;
@@ -53,6 +58,10 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
     public String getPassword() {

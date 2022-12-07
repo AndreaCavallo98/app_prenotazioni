@@ -51,15 +51,15 @@ public class ServletAuth extends HttpServlet {
                 //s.setAttribute("userRole", user.getRole());
 
                 String jwtToken = JWTHelper.createJwt(Integer.toString(user.getId()), user.getUsername(), user.getRole());
-                authResponse = new AuthResponse(user.getId(),user.getUsername(),jwtToken,user.getImage_name(),"");
+                authResponse = new AuthResponse(user.getId(),user.getName() + " " + user.getSurname(),  user.getUsername(), user.getEmail(), jwtToken,user.getImage_name(),"");
             }
             else{
 
-                authResponse = new AuthResponse(-1,"","","","Credentials not correct!");
+                authResponse = new AuthResponse(-1,"","","","","","Credentials not correct!");
             }
         }
         else{
-            authResponse = new AuthResponse(-1,"","","","Generic Error");
+            authResponse = new AuthResponse(-1,"","","","","","Generic Error");
         }
 
         String jsonString = gson.toJson(authResponse);
