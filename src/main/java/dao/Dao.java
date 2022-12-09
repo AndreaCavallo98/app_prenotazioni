@@ -1,13 +1,18 @@
 package dao;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+
 import java.awt.print.Book;
 import java.sql.*;
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+
 
 public class Dao {
 
@@ -66,6 +71,60 @@ public class Dao {
             closeConnection();
         }*/
         return user;
+    }
+
+    public int register(String name, String surname, String username, String email, String password){
+        createConnection();
+        int retNewUserId = -1;
+        try {
+            PreparedStatement st = conn.prepareStatement("INSERT INTO user (name, surname, username, email, password, role) VALUES ('" + name +  "', '" + surname + "', '" + username + "', '" + email + "', '" + password + "', 'user')",
+                    Statement.RETURN_GENERATED_KEYS);
+
+            int affectedRows = st.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException("Creating user failed, no rows affected.");
+            }
+
+            try (ResultSet generatedKeys = st.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    retNewUserId = (int)generatedKeys.getLong(1);
+                }
+                else {
+                    throw new SQLException("Creating user failed, no ID obtained.");
+                }
+            }
+
+            st.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        finally {
+            return retNewUserId;
+        }
+    }
+
+    public String checkExistingUsernameOrEmail(String username, String email){
+        String ret = "";
+        createConnection();
+        try {
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT * FROM user WHERE username = '" + username + "' OR email = '" + email + "'");
+            if (rs.isBeforeFirst()) {
+                while (rs.next()){
+                    if(rs.getString("username").equals(username)){
+                        ret = "username";
+                    }
+                    else if(rs.getString("email").equals(email)){
+                        ret = "email";
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return  ret;
     }
 
     // => METHODS TO MANAGE COURSES
@@ -165,7 +224,7 @@ public class Dao {
         int num_lectures_given = -1;
         try{
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT COUNT(*) as num_lectures_given FROM booking WHERE id_teacher = " + idTeacher);
+            ResultSet rs = st.executeQuery("SELECT COUNT(*) as num_lectures_given FROM booking WHERE confirmed = true AND id_teacher = " + idTeacher);
             rs.next();
             num_lectures_given = rs.getInt("num_lectures_given");
         } catch (SQLException e) {
@@ -282,7 +341,7 @@ public class Dao {
             System.out.println(e.getMessage());
         }
         finally {
-            closeConnection();
+            //closeConnection();
             return true;
         }
     }
@@ -344,15 +403,22 @@ public class Dao {
         }
     }
 
-    public ArrayList<BookingSlot> getDailyTeacherSlots(int idTeacher, String dateDay){
+    public ArrayList<BookingSlot> getDailyTeacherSlots(int idTeacher, String dateDay, int userId){
         ArrayList<BookingSlot> booking_slot_list = new ArrayList<>();
         try {
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery("SELECT * FROM booking WHERE deleted = false AND id_teacher = " + idTeacher + " AND booking_date = '" + dateDay + "' ORDER BY booking_time_start ASC");
 
+            org.joda.time.format.DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/yyyy");
+            DateTime dateDayDate = formatter.parseDateTime(dateDay);
+
+
             for(int i = 15; i < 19; i++) {
-                BookingSlot bookingSlot = new BookingSlot(i, i+1, true);
-                booking_slot_list.add(bookingSlot);
+
+                if(dateDayDate.plusHours(i).compareTo(DateTime.now()) > 0 && !checkIfUserHaveAlreadyBookedForSlot(userId, dateDay, i)){
+                    BookingSlot bookingSlot = new BookingSlot(i, i+1, true);
+                    booking_slot_list.add(bookingSlot);
+                }
             }
 
             while (rs.next()) {
@@ -384,12 +450,30 @@ public class Dao {
         return maxHourlyRate;
     }
 
+    private boolean checkIfUserHaveAlreadyBookedForSlot(int userId, String date, int startTime){
+        boolean ret = false;
+        createConnection();
+        try {
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT * FROM booking WHERE deleted = false AND id_user = " + userId + " AND booking_date = '" + date + "' AND booking_time_start = " + startTime);
+            if (rs.isBeforeFirst()) {
+                ret = true;
+            }
+            st.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return  ret;
+    }
+
     private class CustomTeacherComparator implements Comparator<Teacher> {
         @Override
         public int compare(Teacher o1, Teacher o2) {
             return Double.compare(o1.getReviews_average(), o2.getReviews_average());
         }
     }
+
 
     // => METHODS TO MANAGE ASSOCIATIONS BEETWEEN COURSES AND TEACHER
     public void associateCourseToteacher(int idCourse, int idTeacher){
@@ -443,12 +527,9 @@ public class Dao {
     // => METHODS TO MANAGE BOOKING
 
     /* TO DO:
-    * managing errors requests
-    * internalization +
-    * errore ogni tanto quando elimino o aggiungo prenotazione non mi carica subito la lista con la modifica effettuata
-    * fix login/logout & registration
-    * btn remove filter
-    * when user click on confirm booking check effective availability +
+    * managing errors requests[SI]
+    * errore ogni tanto quando elimino o aggiungo prenotazione non mi carica subito la lista con la modifica effettuata[SI]
+    * when user click on confirm booking check effective availability[SI]
     * null sound...
     * */
 

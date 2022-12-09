@@ -31,14 +31,15 @@ public class ServletCalendar extends HttpServlet {
 
         String teacherId = request.getParameter("teacherid");
         String dateDay = request.getParameter("dateday");
+        String userId = request.getParameter("userid");
 
-        if(teacherId != null && dateDay != null){
+        if(teacherId != null && dateDay != null && userId != null){
             String jwt = request.getHeader("Authorization");
 
             try{
                 JWTHelper.decodeJwt(jwt);
                 // => from here user is authenticated
-                ArrayList<BookingSlot> bookingSlotList = dao.getDailyTeacherSlots(Integer.parseInt(teacherId), dateDay);
+                ArrayList<BookingSlot> bookingSlotList = dao.getDailyTeacherSlots(Integer.parseInt(teacherId), dateDay, Integer.parseInt(userId));
                 String jsonString = gson.toJson(bookingSlotList);
                 out.print(jsonString);
             } catch (Exception e){
