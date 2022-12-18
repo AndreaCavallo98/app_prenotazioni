@@ -25,6 +25,9 @@ public class ServletReview extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("application/json");
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS");
+        response.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
         String idTeacher = request.getParameter("idteacher");
 
         if(idTeacher != null){

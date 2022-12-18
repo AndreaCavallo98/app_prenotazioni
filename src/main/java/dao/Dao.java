@@ -313,6 +313,42 @@ public class Dao {
         return topFive && teachers_list.size() >= 5 ?  topFiveList : teachers_list;
     }
 
+    public Teacher getTeacher(int teacherId){
+        Teacher teacher = null;
+        createConnection();
+        try {
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT * from teacher WHERE id = " + teacherId);
+            if(rs.isBeforeFirst()){
+                rs.next();
+
+                int num_lectures_given = getNumTeacherLecturesGiven(teacherId);
+                int num_teacher_review = getNumTeacherReview(teacherId);
+                double reviews_average = getTeacherReviewsAverage(teacherId, num_teacher_review);
+                ArrayList<Course> teacherCourseList = getTeacherCourses(teacherId);
+                teacher = new Teacher(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("surname"),
+                    rs.getString("description"),
+                    teacherCourseList,
+                    rs.getDouble("hourly_rate"),
+                    num_lectures_given,
+                    num_teacher_review,
+                    reviews_average,
+                    rs.getString("image_name"),
+                    rs.getBoolean("active")
+                );
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        /*finally {
+            closeConnection();
+        }*/
+        return teacher;
+    }
+
     public ArrayList<Course> getTeacherCourses(int idTeacher){
         ArrayList<Course> course_list = new ArrayList<>();
         try {
