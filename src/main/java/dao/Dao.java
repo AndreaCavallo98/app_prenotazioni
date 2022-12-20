@@ -452,7 +452,7 @@ public class Dao {
             for(int i = 15; i < 19; i++) {
 
                 if(dateDayDate.plusHours(i).compareTo(DateTime.now()) > 0 && !checkIfUserHaveAlreadyBookedForSlot(userId, dateDay, i)){
-                    BookingSlot bookingSlot = new BookingSlot(i, i+1, true);
+                    BookingSlot bookingSlot = new BookingSlot(dateDay, i, i+1, true);
                     booking_slot_list.add(bookingSlot);
                 }
             }
