@@ -564,6 +564,8 @@ public class Dao {
 
     /* TO DO:
     * managing errors requests[SI]
+    * errore se ho gia prenotato l'index si sposta e da errore
+    * tutorial iniziale
     * errore ogni tanto quando elimino o aggiungo prenotazione non mi carica subito la lista con la modifica effettuata[SI]
     * when user click on confirm booking check effective availability[SI]
     * null sound...

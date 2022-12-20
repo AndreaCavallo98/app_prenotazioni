@@ -29,26 +29,66 @@ public class ServletCalendar extends HttpServlet {
         PrintWriter out = response.getWriter();
         Gson gson = new Gson();
 
-        String teacherId = request.getParameter("teacherid");
-        String dateDay = request.getParameter("dateday");
-        String userId = request.getParameter("userid");
+        String type = request.getParameter("type");
+        if(type != null){
+            if(type.equals("daily")){
+                String teacherId = request.getParameter("teacherid");
+                String dateDay = request.getParameter("dateday");
+                String userId = request.getParameter("userid");
 
-        if(teacherId != null && dateDay != null && userId != null){
-            String jwt = request.getHeader("Authorization");
+                if(teacherId != null && dateDay != null && userId != null){
+                    String jwt = request.getHeader("Authorization");
 
-            try{
-                JWTHelper.decodeJwt(jwt);
-                // => from here user is authenticated
-                ArrayList<BookingSlot> bookingSlotList = dao.getDailyTeacherSlots(Integer.parseInt(teacherId), dateDay, Integer.parseInt(userId));
-                String jsonString = gson.toJson(bookingSlotList);
-                out.print(jsonString);
-            } catch (Exception e){
-                response.sendError(401, "Unauthorized");
+                    try{
+                        JWTHelper.decodeJwt(jwt);
+                        // => from here user is authenticated
+                        ArrayList<BookingSlot> bookingSlotList = dao.getDailyTeacherSlots(Integer.parseInt(teacherId), dateDay, Integer.parseInt(userId));
+                        String jsonString = gson.toJson(bookingSlotList);
+                        out.print(jsonString);
+                    } catch (Exception e){
+                        response.sendError(401, "Unauthorized");
+                    }
+                }
+                else{
+                    response.sendError(500, "parameters not completed");
+                }
+            }
+            else if (type.equals("weekly")){
+
+                String startday = request.getParameter("startday");
+                String endday = request.getParameter("endday");
+                String teacherId = request.getParameter("teacherid");
+                String userId = request.getParameter("userid");
+                if(startday != null && endday != null && teacherId != null && userId != null){
+                    String jwt = request.getHeader("Authorization");
+
+                    try{
+                        JWTHelper.decodeJwt(jwt);
+                        // => from here user is authenticated
+
+
+
+
+
+
+                        //ArrayList<BookingSlot> bookingSlotList = dao.getDailyTeacherSlots(Integer.parseInt(teacherId), dateDay, Integer.parseInt(userId));
+                        //String jsonString = gson.toJson(bookingSlotList);
+                        //out.print(jsonString);
+                    } catch (Exception e){
+                        response.sendError(401, "Unauthorized");
+                    }
+                }
+                else{
+                    response.sendError(500, "parameters not completed");
+                }
+
             }
         }
         else{
             response.sendError(500, "parameters not completed");
         }
+
+
     }
 
     @Override

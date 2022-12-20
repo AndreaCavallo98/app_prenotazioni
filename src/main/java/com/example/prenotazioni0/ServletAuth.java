@@ -32,6 +32,9 @@ public class ServletAuth extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS");
+        response.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         Gson gson = new Gson();
@@ -53,15 +56,15 @@ public class ServletAuth extends HttpServlet {
                         //s.setAttribute("userRole", user.getRole());
 
                         String jwtToken = JWTHelper.createJwt(Integer.toString(user.getId()), user.getUsername(), user.getRole());
-                        authResponse = new AuthResponse(user.getId(),user.getName() + " " + user.getSurname(),  user.getUsername(), user.getEmail(), jwtToken,user.getImage_name(),"");
+                        authResponse = new AuthResponse(user.getId(), user.getRole(), user.getName() + " " + user.getSurname(),  user.getUsername(), user.getEmail(), jwtToken,user.getImage_name(),"");
                     }
                     else{
 
-                        authResponse = new AuthResponse(-1,"","","","","","Credentials not correct!");
+                        authResponse = new AuthResponse(-1,"", "","","","","","Credentials not correct!");
                     }
                 }
                 else{
-                    authResponse = new AuthResponse(-1,"","","","","","Generic Error");
+                    authResponse = new AuthResponse(-1,"", "","","","","","Generic Error");
                 }
             }
             else if(action.equals("register")){
@@ -81,29 +84,29 @@ public class ServletAuth extends HttpServlet {
                         int newUserId = dao.register(name, surname, username, email, encryptedPwd);
                         if(newUserId != -1){
                             String jwtToken = JWTHelper.createJwt(Integer.toString(newUserId), username, "user");
-                            authResponse = new AuthResponse(newUserId,name + " " + surname,  username, email, jwtToken,"","");
+                            authResponse = new AuthResponse(newUserId,"user", name + " " + surname,  username, email, jwtToken,"","");
                         }
                         else{
-                            authResponse = new AuthResponse(-1,"","","","","","Error while inserting new user");
+                            authResponse = new AuthResponse(-1,"", "","","","","","Error while inserting new user");
                         }
 
                     }
                     else if(checkExistingUser == "username"){
-                        authResponse = new AuthResponse(-1,"","","","","","Username already exist!");
+                        authResponse = new AuthResponse(-1,"", "","","","","","Username already exist!");
                     }
                     else if(checkExistingUser == "email"){
-                        authResponse = new AuthResponse(-1,"","","","","","Email already exist!");
+                        authResponse = new AuthResponse(-1,"", "","","","","","Email already exist!");
                     }
                 }
                 else{
                     response.sendError(500, "parameters not completed");
-                    authResponse = new AuthResponse(-1,"","","","","","parameters not completed");
+                    authResponse = new AuthResponse(-1,"","","","","","","parameters not completed");
                 }
             }
         }
         else{
             response.sendError(500, "parameters not completed");
-            authResponse = new AuthResponse(-1,"","","","","","parameters not completed");
+            authResponse = new AuthResponse(-1,"", "","","","","","parameters not completed");
         }
 
         String jsonString = gson.toJson(authResponse);
