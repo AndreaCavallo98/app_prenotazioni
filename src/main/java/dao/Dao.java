@@ -755,7 +755,7 @@ public class Dao {
                             "AND STR_TO_DATE(booking.booking_date, '%d/%m/%Y') = CURDATE() " +
                             "AND booking.confirmed = false " +
                             "AND booking.deleted = false " +
-                            "ORDER BY booking_date_converted DESC");
+                            "ORDER BY booking.booking_time_start ASC");
 
             while (rs.next()) {
                 Booking myBook = new Booking(
