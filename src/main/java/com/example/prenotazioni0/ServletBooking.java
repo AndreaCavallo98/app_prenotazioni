@@ -64,6 +64,9 @@ public class ServletBooking extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS");
+        response.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
         response.setContentType("html/text");
         PrintWriter out = response.getWriter();
         Gson gson = new Gson();
@@ -101,6 +104,9 @@ public class ServletBooking extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS");
+        response.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         Gson gson = new Gson();
@@ -126,6 +132,9 @@ public class ServletBooking extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS");
+        response.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         Gson gson = new Gson();
