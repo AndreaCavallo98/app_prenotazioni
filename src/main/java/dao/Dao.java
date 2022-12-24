@@ -128,24 +128,41 @@ public class Dao {
     }
 
     // => METHODS TO MANAGE COURSES
-    public void addCourse(Course course){
+    public long addCourse(Course course){
+        long retCourseNewId = -1;
         createConnection();
         try {
-            Statement st = conn.createStatement();
-            st.executeUpdate("INSERT INTO course (title) VALUES ('" + course.getTitle() +  "')");
+            PreparedStatement st = conn.prepareStatement("INSERT INTO course (title, color) VALUES ('" + course.getTitle() +  "', '" + course.getColor() + "')",
+                    Statement.RETURN_GENERATED_KEYS);
+
+            int affectedRows = st.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException("Creating user failed, no rows affected.");
+            }
+
+            try (ResultSet generatedKeys = st.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    retCourseNewId = generatedKeys.getLong(1);
+                }
+                else {
+                    throw new SQLException("Creating user failed, no ID obtained.");
+                }
+            }
+
             st.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        /*finally {
-            closeConnection();
-        }*/
+        finally {
+            return retCourseNewId;
+        }
     }
-    public void removeCourse(int idCourse){
+    public void toggleCourse(int idCourse){
         createConnection();
         try {
             Statement st = conn.createStatement();
-            st.executeUpdate("UPDATE course SET active = 0 WHERE id = " + idCourse);
+            st.executeUpdate("UPDATE course SET active = !active WHERE id = " + idCourse);
             st.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -174,12 +191,12 @@ public class Dao {
         return teachers_list;
     }*/
 
-    public ArrayList<Course> getCourses() {
+    public ArrayList<Course> getCourses(boolean admin) {
         ArrayList<Course> courses_list = new ArrayList<>();
         createConnection();
         try {
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM course WHERE active = 1");
+            ResultSet rs = admin ? st.executeQuery("SELECT * FROM course") : st.executeQuery("SELECT * FROM course WHERE active = 1");
             while (rs.next()) {
                 Course course = new Course(rs.getInt("id"),rs.getString("title"),rs.getString("color"),rs.getString("image_name"), rs.getBoolean("active"));
                 courses_list.add(course);
@@ -194,32 +211,51 @@ public class Dao {
     }
 
     // => METHODS TO MANAGE TEACHERS
-    public void addTeacher(Teacher teacher){
+    public long addTeacher(String name, String surname, String description, Double hourly_rate, int mainTeacheedCourse){
+        long retTeacherNewId = -1;
         createConnection();
         try {
-            Statement st = conn.createStatement();
-            st.executeUpdate("INSERT INTO teacher (name, surname) VALUES ('" + teacher.getName() +  "', '" + teacher.getSurname() + "')");
+
+            PreparedStatement st = conn.prepareStatement("INSERT INTO teacher (name, surname, description, hourly_rate) VALUES ('" + name +  "', '" + surname + "', '" + description + "', " + hourly_rate +")",
+                    Statement.RETURN_GENERATED_KEYS);
+
+            int affectedRows = st.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException("Creating user failed, no rows affected.");
+            }
+
+            try (ResultSet generatedKeys = st.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    retTeacherNewId = generatedKeys.getLong(1);
+
+                    // Create association with main course selected
+                    associateCourseToteacher(mainTeacheedCourse, (int)retTeacherNewId);
+                }
+                else {
+                    throw new SQLException("Creating user failed, no ID obtained.");
+                }
+            }
+
             st.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
         finally {
-           closeConnection();
+            return retTeacherNewId;
         }
     }
-    public void removeTeacher(int idTeacher){
+    public void toggleTeacher(int idTeacher){
         createConnection();
         try {
             Statement st = conn.createStatement();
-            st.executeUpdate("UPDATE teacher SET active = 0 WHERE id = " + idTeacher);
+            st.executeUpdate("UPDATE teacher SET active = !active WHERE id = " + idTeacher);
             st.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-       /* finally {
-            closeConnection();
-        }*/
     }
+
     private int getNumTeacherLecturesGiven(int idTeacher){
         int num_lectures_given = -1;
         try{
@@ -261,7 +297,7 @@ public class Dao {
 
         return reviews_average;
     }
-    public ArrayList<Teacher> getTeachers(boolean topFive, int filterCourseId, String filterAvaliableDate, int filterMaxHourlyRate) {
+    public ArrayList<Teacher> getTeachers(boolean topFive, int filterCourseId, String filterAvaliableDate, int filterMaxHourlyRate, boolean admin) {
         ArrayList<Teacher> teachers_list = new ArrayList<>();
         createConnection();
         try {
@@ -270,7 +306,12 @@ public class Dao {
             if(filterCourseId != -1){
                 query += " LEFT JOIN rel_course_teacher ON rel_course_teacher.id_teacher = teacher.id";
             }
-            query += " WHERE teacher.active = 1";
+            if(!admin){
+                query += " WHERE teacher.active = 1";
+            }else{
+                query += " WHERE true = true";
+            }
+
             if(filterCourseId != -1){
                 query += " AND rel_course_teacher.id_course = " + filterCourseId;
             }
@@ -786,8 +827,8 @@ public class Dao {
     public List<DailyAvaliability> getSlotAvaliability(String day, int time){
 
         List<DailyAvaliability> listAvaliability = new ArrayList<>();
-        List<Course> courseList = getCourses();
-        List<Teacher> teacherList = getTeachers(false, -1, "", -1);
+        List<Course> courseList = getCourses(false);
+        List<Teacher> teacherList = getTeachers(false, -1, "", -1, false);
         createConnection();
         for(Teacher t: teacherList){
             try {

@@ -134,7 +134,7 @@ public class HelloServlet extends HttpServlet {
         "</html>");
     }
 
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    /*public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         HttpSession s = request.getSession();
 
@@ -193,7 +193,7 @@ public class HelloServlet extends HttpServlet {
         }
 
 
-    }
+    }*/
 
     public void destroy() {
     }
