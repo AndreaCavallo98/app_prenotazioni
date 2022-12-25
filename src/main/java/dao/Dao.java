@@ -556,6 +556,7 @@ public class Dao {
     public void associateCourseToteacher(int idCourse, int idTeacher){
         createConnection();
         try {
+            // elimina tutte le precedenti associazioni
             Statement st = conn.createStatement();
             st.executeUpdate("INSERT INTO rel_course_teacher (id_course, id_teacher) VALUES (" + idCourse +  ", " + idTeacher + ")");
             st.close();
@@ -566,18 +567,15 @@ public class Dao {
             closeConnection();
         }*/
     }
-    public void removeCourseTeacherAssociation(int idRel){
+    public void removeCourseTeacherAssociation(int idTeacher){
         createConnection();
         try {
             Statement st = conn.createStatement();
-            st.executeUpdate("DELETE FROM rel_course_teacher WHERE id = " + idRel);
+            st.executeUpdate("DELETE FROM rel_course_teacher WHERE id_teacher = " + idTeacher);
             st.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        /*finally {
-            closeConnection();
-        }*/
     }
     public ArrayList<RelCourseTeacher> getAssociations() {
         ArrayList<RelCourseTeacher> rel_list = new ArrayList<>();

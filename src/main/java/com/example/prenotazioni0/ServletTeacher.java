@@ -1,6 +1,7 @@
 package com.example.prenotazioni0;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import dao.Course;
 import dao.Dao;
 import dao.Teacher;
@@ -14,6 +15,7 @@ import javax.servlet.annotation.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 
 @WebServlet(name = "ServletTeacher", value = "/ServletTeacher")
 public class ServletTeacher extends HttpServlet {
@@ -107,32 +109,67 @@ public class ServletTeacher extends HttpServlet {
         PrintWriter out = response.getWriter();
         Gson gson = new Gson();
 
-        String name = request.getParameter("name");
-        String surname = request.getParameter("surname");
-        String description = request.getParameter("description");
-        String hourly_rate = request.getParameter("hourlyrate");
-        String mainteachedcourse = request.getParameter("courseid");
-        if(name != null && surname != null && description != null && hourly_rate != null && mainteachedcourse != null){
-            String jwt = request.getHeader("Authorization");
+        String action = request.getParameter("action");
 
-            try{
-                Jws<Claims> claims  = JWTHelper.decodeJwt(jwt);
-                // => from here user is authenticated
-                // => check if jwt has admin
-                if(claims.getBody().get("role").equals("admin")){
-                    int newTeacherId = (int)dao.addTeacher(name, surname, description, Double.parseDouble(hourly_rate), Integer.parseInt(mainteachedcourse));
-                    out.print(newTeacherId);
-                }
-                else{
+        if(action.equals("newteacher")){
+            String name = request.getParameter("name");
+            String surname = request.getParameter("surname");
+            String description = request.getParameter("description");
+            String hourly_rate = request.getParameter("hourlyrate");
+            String mainteachedcourse = request.getParameter("courseid");
+            if(name != null && surname != null && description != null && hourly_rate != null && mainteachedcourse != null){
+                String jwt = request.getHeader("Authorization");
+
+                try{
+                    Jws<Claims> claims  = JWTHelper.decodeJwt(jwt);
+                    // => from here user is authenticated
+                    // => check if jwt has admin
+                    if(claims.getBody().get("role").equals("admin")){
+                        int newTeacherId = (int)dao.addTeacher(name, surname, description, Double.parseDouble(hourly_rate), Integer.parseInt(mainteachedcourse));
+                        out.print(newTeacherId);
+                    }
+                    else{
+                        response.sendError(401, "Unauthorized");
+                    }
+                } catch (Exception e){
                     response.sendError(401, "Unauthorized");
                 }
-            } catch (Exception e){
-                response.sendError(401, "Unauthorized");
+            }
+            else{
+                response.sendError(500, "parameters not completed");
             }
         }
-        else{
-            response.sendError(500, "parameters not completed");
+        else if(action.equals("courseassociation")){
+            String teacherId = request.getParameter("idteacher");
+            String courseArray = request.getParameter("coursearray");
+
+            if(teacherId != null && courseArray != null){
+                String jwt = request.getHeader("Authorization");
+                ArrayList<Integer> list = gson.fromJson(courseArray, new TypeToken<List<Integer>>(){}.getType());
+
+                try{
+                    Jws<Claims> claims  = JWTHelper.decodeJwt(jwt);
+                    // => from here user is authenticated
+                    // => check if jwt has admin
+                    if(claims.getBody().get("role").equals("admin")){
+                        dao.removeCourseTeacherAssociation(Integer.parseInt(teacherId));
+                        for (Integer courseId: list) {
+                            dao.associateCourseToteacher(courseId, Integer.parseInt(teacherId));
+                        }
+                    }
+                    else{
+                        response.sendError(401, "Unauthorized");
+                    }
+                } catch (Exception e){
+                    response.sendError(401, "Unauthorized");
+                }
+            }
+            else{
+                response.sendError(500, "parameters not completed");
+            }
         }
+
+
     }
 
     @Override
