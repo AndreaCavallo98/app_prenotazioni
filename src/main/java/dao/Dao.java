@@ -72,7 +72,6 @@ public class Dao {
         }*/
         return user;
     }
-
     public int register(String name, String surname, String username, String email, String password){
         createConnection();
         int retNewUserId = -1;
@@ -103,7 +102,6 @@ public class Dao {
             return retNewUserId;
         }
     }
-
     public String checkExistingUsernameOrEmail(String username, String email){
         String ret = "";
         createConnection();
@@ -125,6 +123,25 @@ public class Dao {
         }
 
         return  ret;
+    }
+
+    public ArrayList<User> getUsersAdmin() {
+        ArrayList<User> users_list = new ArrayList<>();
+        createConnection();
+        try {
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT * FROM user");
+            while (rs.next()) {
+                User user = new User(rs.getInt("id"), rs.getString("name"), rs.getString("surname"), rs.getString("username"), rs.getString("email"), rs.getString("role"),rs.getString("image_name"), rs.getBoolean("active"));
+                users_list.add(user);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        /*finally {
+            closeConnection();
+        }*/
+        return users_list;
     }
 
     // => METHODS TO MANAGE COURSES
@@ -809,6 +826,65 @@ public class Dao {
                         rs.getBoolean("booking.confirmed"),
                         rs.getBoolean("booking.deleted"),
                         false
+                );
+
+                my_bookings_list.add(myBook);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        /*finally {
+            closeConnection();
+        }*/
+        return my_bookings_list;
+    }
+
+    public ArrayList<Booking> getUsersBookingAdmin() {
+        ArrayList<Booking> my_bookings_list = new ArrayList<>();
+        createConnection();
+        try {
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery(
+                    "SELECT booking.id, " +
+                            "course.title, " +
+                            "course.color, " +
+                            "teacher.name, " +
+                            "teacher.surname, " +
+                            "booking.id_user, " +
+                            "user.name, " +
+                            "user.surname, " +
+                            "booking.booking_date," +
+                            "STR_TO_DATE(booking.booking_date, '%d/%m/%Y') as booking_date_converted," +
+                            "booking.booking_time_start," +
+                            "booking.booking_time_end, " +
+                            "booking.confirmed, " +
+                            "booking.deleted, " +
+                            "booking_review.id " +
+                            "FROM booking " +
+                            "LEFT JOIN teacher ON teacher.id = booking.id_teacher " +
+                            "LEFT JOIN course ON course.id = booking.id_course " +
+                            "LEFT JOIN user ON user.id = booking.id_user " +
+                            "LEFT JOIN booking_review ON booking_review.id_booking = booking.id " +
+                            "ORDER BY booking_date_converted DESC");
+
+            while (rs.next()) {
+                boolean hasReview = false;
+                if(rs.getString("booking_review.id") != null){
+                    hasReview = true;
+                }
+                Booking myBook = new Booking(
+                        rs.getInt("booking.id"),
+                        rs.getString("course.title"),
+                        rs.getString("course.color"),
+                        (rs.getString("teacher.name") + " " + rs.getString("teacher.surname")),
+                        rs.getInt("booking.id_user"),
+                        rs.getString("user.name") + " " + rs.getString("user.surname"),
+                        rs.getString("booking.booking_date"),
+                        rs.getInt("booking.booking_time_start"),
+                        rs.getInt("booking.booking_time_end"),
+                        rs.getBoolean("booking.confirmed"),
+                        rs.getBoolean("booking.deleted"),
+                        hasReview
                 );
 
                 my_bookings_list.add(myBook);

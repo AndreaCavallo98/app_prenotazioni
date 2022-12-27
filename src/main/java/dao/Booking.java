@@ -8,6 +8,8 @@ public class Booking {
     private String teacher_name_surname;
 
     private int id_user;
+
+    private String user_name_surname;
     private String date;
     private int start_time;
     private int end_time;
@@ -23,6 +25,21 @@ public class Booking {
         this.course_color = course_color;
         this.teacher_name_surname = teacher_name_surname;
         this.id_user = id_user;
+        this.date = date;
+        this.start_time = start_time;
+        this.end_time = end_time;
+        this.confirmed = confirmed;
+        this.deleted = deleted;
+        this.has_review = has_review;
+    }
+
+    public Booking(int id, String course_title, String course_color, String teacher_name_surname, int id_user, String user_name_surname, String date, int start_time, int end_time, boolean confirmed, boolean deleted, boolean has_review){
+        this.id = id;
+        this.course_title = course_title;
+        this.course_color = course_color;
+        this.teacher_name_surname = teacher_name_surname;
+        this.id_user = id_user;
+        this.user_name_surname = user_name_surname;
         this.date = date;
         this.start_time = start_time;
         this.end_time = end_time;

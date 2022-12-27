@@ -5,6 +5,8 @@ import dao.AuthResponse;
 import dao.Dao;
 import dao.Teacher;
 import dao.User;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import jwt.JWTHelper;
 import services.EncryptPwdService;
 
@@ -13,6 +15,7 @@ import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 
 @WebServlet(name = "ServletAuth", value = "/servlet-auth")
@@ -27,7 +30,35 @@ public class ServletAuth extends HttpServlet {
 
     //@Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS");
+        response.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+        response.setContentType("application/json");
+        PrintWriter out = response.getWriter();
+        Gson gson = new Gson();
 
+        ArrayList<User> usersList = new ArrayList<>();
+        String jwt = request.getHeader("Authorization");
+
+        try{
+            Jws<Claims> claims  = JWTHelper.decodeJwt(jwt);
+            // => from here user is authenticated
+            // => check if jwt has admin
+            if(claims.getBody().get("role").equals("admin")){
+                usersList = dao.getUsersAdmin();
+            }
+            else{
+                response.sendError(401, "Unauthorized");
+            }
+
+        } catch (Exception e){
+            response.sendError(401, "Unauthorized");
+        }
+
+
+
+        String jsonString = gson.toJson(usersList);
+        out.print(jsonString);
     }
 
     @Override

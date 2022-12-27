@@ -35,33 +35,60 @@ public class ServletBooking extends HttpServlet {
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         Gson gson = new Gson();
-        String userId = request.getParameter("userid");
-        String dailyUpcoming = request.getParameter("dailyupcoming");
+        ArrayList<Booking> myBookingList;
 
-        if(userId != null && dailyUpcoming != null){
+        String admin = request.getParameter("admin");
+
+        if(admin != null && admin.equals("true")){
             String jwt = request.getHeader("Authorization");
 
             try{
-                JWTHelper.decodeJwt(jwt);
-                ArrayList<Booking> myBookingList;
+                Jws<Claims> claims  = JWTHelper.decodeJwt(jwt);
                 // => from here user is authenticated
-                if(dailyUpcoming.equals("false")){
-                    // => normal
-                    myBookingList = dao.getUsersBooking(Integer.parseInt(userId));
+                // => check if jwt has admin
+                if(claims.getBody().get("role").equals("admin")){
+
+                    myBookingList = dao.getUsersBookingAdmin();
+                    String jsonString = gson.toJson(myBookingList);
+                    out.print(jsonString);
                 }
                 else{
-                    // => Return only today booking
-                    myBookingList = dao.getUsersUpcomingDailyBooking(Integer.parseInt(userId));
+                    response.sendError(401, "Unauthorized");
                 }
 
-                String jsonString = gson.toJson(myBookingList);
-                out.print(jsonString);
             } catch (Exception e){
                 response.sendError(401, "Unauthorized");
             }
         }
         else{
-            response.sendError(500, "parameters not completed");
+            String userId = request.getParameter("userid");
+            String dailyUpcoming = request.getParameter("dailyupcoming");
+
+            if(userId != null && dailyUpcoming != null){
+                String jwt = request.getHeader("Authorization");
+
+                try{
+                    JWTHelper.decodeJwt(jwt);
+
+                    // => from here user is authenticated
+                    if(dailyUpcoming.equals("false")){
+                        // => normal
+                        myBookingList = dao.getUsersBooking(Integer.parseInt(userId));
+                    }
+                    else{
+                        // => Return only today booking
+                        myBookingList = dao.getUsersUpcomingDailyBooking(Integer.parseInt(userId));
+                    }
+
+                    String jsonString = gson.toJson(myBookingList);
+                    out.print(jsonString);
+                } catch (Exception e){
+                    response.sendError(401, "Unauthorized");
+                }
+            }
+            else{
+                response.sendError(500, "parameters not completed");
+            }
         }
     }
 
