@@ -2,49 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Pragma" content="no-cache">
-    <title>Hello world da index.html</title>
-    <link href="bootstrap-4.5.2-dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
-    <script src="bootstrap-4.5.2-dist/js/jquery-slim.min.js"></script>
-    <script src="bootstrap-4.5.2-dist/js/bootstrap.min.js"></script>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bootcamp Registration</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
 </head>
 <body>
-<div class="col-12">
-    <h1>LECTURE BOOKING APP</h1>
+<header>
+    <a href="#main" class="skip">Skip to main content</a>
+</header>
+<aside></aside>
+<main class="form" id="main">
+    <h1>BOOKING LECTURE APP</h1>
+    <p>Accessible registration form (Prof. Gena)</p>
     <form>
-        <h2>Login</h2>
-        <div class="form-group">
-            <label for="input_username">Username</label>
-            <input type="text" class="form-control" id="input_username" name="username" placeholder="Insert your username" aria-describedby="emailHelp">
-        </div>
-        <div class="form-group">
-            <label for="input_password">Password</label>
-            <input type="password" class="form-control" id="input_password" name="password" placeholder="Insert your password">
-        </div>
-        <button type="button" id="loginButton" class="btn btn-primary">Login</button>
+        <!-- User information -->
+        <fieldset class="first-section">
+            <legend>Contact Details</legend>
+            <label for="name">Name <span>*</span></label>
+            <input autofocus type="text" id="name" name="name" placeholder="Insert name" autocomplete="on" aria-required="true" required> <br><br>
+            <label for="surname">Surname <span>*</span></label>
+            <input type="text" id="surname" name="surname" placeholder="Insert surname" autocomplete="on" aria-required="true" required> <br><br>
+            <label for="dob">Birth Date <span>*</span></label>
+            <input type="date" id="dob" aria-required="true" required> <br><br>
+            <label for="gender">Gender:</label>
+            <select name="gender" id="gender">
+                <option value="volvo">Male</option>
+                <option value="saab">Female</option>
+                <option value="opel">Other</option>
+            </select>
+            <br><br>
+            <label for="email">Email <span>*</span></label>
+            <input type="email" id="email" placeholder="Insert email" aria-required="true" required> <br><br>
+            <label for="tel">Phone <span>*</span></label>
+            <input type="tel" pattern="[0-9]{10}" id="tel" placeholder="Insert your telephone number" aria-required="true" required> <br><br>
+        </fieldset>
+        <!-- Access information -->
+        <fieldset class="second-section">
+            <legend>Access informations</legend>
+            <label for="username">Surname <span>*</span></label>
+            <input type="text" id="username" name="username" placeholder="Insert username" autocomplete="on" aria-required="true" required> <br><br>
+            <label for="password">Password <span>*</span></label>
+            <input type="password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters" autocomplete="off" id="password" name="password" placeholder="Insert password" aria-required="true" required> <br><br>
+            <label for="repeat_password">Repeat Password <span>*</span></label>
+            <input type="password" autocomplete="off" id="repeat_password" name="repeat_password" placeholder="Repeat password" aria-required="true" required> <br><br>
 
+        </fieldset>
+        <div role="term" class="terms">
+            <input type="checkbox" id="scales" name="scales" class="checkbox" aria-required="true" required>
+            <label for="scales">I have read and agree to the terms and conditions</label>
+        </div>
+        <button>Submit</button>
     </form>
-    <div id="feedbackLogin"></div>
-    <br>
-    <a href="hello-servlet" class="badge badge-primary">Show avaliability</a>
-    <a href="newteacher.html" class="badge badge-secondary">Add teacher</a>
-</div>
-
-<script type="text/javascript">
-
-    $(document).ready(function () { // When the DOM of this page is constructed
-        $("#loginButton").click(function () {// on click of xx button do ...
-            $.post("servlet-auth", { username: $("#input_username").val(), password : $("#input_password").val() }, // GET to HelloServlet (hello-servlet)!!
-                function (data) {      // callBack function
-                    $("#feedbackLogin").html(data);
-                });
-        });
-    });
-
-</script>
-
-
+</main>
+<!--
+Check eseguiti:
+- W3C validator
+- https://achecker.achecks.ca/checker/index.php ( WCAG 2.0 (Level AA) )
+-->
+<footer></footer>
 </body>
 </html>
+
