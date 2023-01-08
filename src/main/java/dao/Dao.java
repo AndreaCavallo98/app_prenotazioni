@@ -509,8 +509,11 @@ public class Dao {
 
             for(int i = 15; i < 19; i++) {
 
-                if(dateDayDate.plusHours(i).compareTo(DateTime.now()) > 0 && !checkIfUserHaveAlreadyBookedForSlot(userId, dateDay, i)){
-                    BookingSlot bookingSlot = new BookingSlot(dateDay, i, i+1, true);
+                if(dateDayDate.plusHours(i).compareTo(DateTime.now()) > 0){
+                    BookingSlot bookingSlot = new BookingSlot(dateDay, i, i+1, !checkIfUserHaveAlreadyBookedForSlot(userId, dateDay, i) ? "free" : "booked");
+                    booking_slot_list.add(bookingSlot);
+                }else{
+                    BookingSlot bookingSlot = new BookingSlot(dateDay, i, i+1, "passed");
                     booking_slot_list.add(bookingSlot);
                 }
             }
@@ -518,7 +521,9 @@ public class Dao {
             while (rs.next()) {
                 for (BookingSlot slot:booking_slot_list) {
                     if(slot.getFrom() == rs.getInt("booking_time_start")){
-                        slot.setAvaliable(false);
+                        if(!slot.getStatus().equals("booked")){
+                            slot.setAvaliable("busy");
+                        }
                     }
                 }
             }
@@ -620,10 +625,7 @@ public class Dao {
 
     /* TO DO:
     * managing errors requests[SI]
-    * errore se ho gia prenotato l'index si sposta e da errore
-    * tutorial iniziale
-    * errore ogni tanto quando elimino o aggiungo prenotazione non mi carica subito la lista con la modifica effettuata[SI]
-    * when user click on confirm booking check effective availability[SI]
+    * when user click on confirm booking check effective availability FORSE
     * null sound...
     * */
 
